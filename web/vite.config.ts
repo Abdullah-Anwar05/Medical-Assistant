@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173 },
+  // Bind IPv4 explicitly: Node's default "localhost" may bind ::1 only, which Chrome failed to load.
+  server: { port: 5173, strictPort: true, host: '127.0.0.1' },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

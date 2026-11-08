@@ -1,0 +1,21 @@
+# Local PostgreSQL for MediPath. One database; each microservice owns one schema (identity, ...).
+# The password is never committed: set MEDIPATH_DB_PASSWORD in your shell or a git-ignored .env file.
+services:
+  postgres:
+    image: postgres:17
+    container_name: medipath-postgres
+    environment:
+      POSTGRES_DB: medipath
+      POSTGRES_USER: medipath
+      POSTGRES_PASSWORD: ${MEDIPATH_DB_PASSWORD:?Set MEDIPATH_DB_PASSWORD (see api/README.md)}
+    ports:
+      - "5432:5432"
+    volumes:
+      - medipath-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medipath -d medipath"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  medipath-pg:

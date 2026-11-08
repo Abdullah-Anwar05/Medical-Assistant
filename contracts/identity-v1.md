@@ -45,6 +45,17 @@ Staff users belong to an `organisationId` (tenancy); patients do not.
 - Every login, failed login, refresh, logout and registration writes an audit event.
 - MFA, email verification, password reset and staff invites: later contract versions (v1.1+).
 
+## Behaviour details (clarified by API thread, 2026-11-08)
+
+- Lockout counts failures per email address, including emails with no account, so `423` never reveals whether an account exists. The 5th failure itself returns `401`; attempts during the next 15 minutes return `423`, even with the correct password. A successful login resets the count.
+- `/refresh` and `/logout` read the refresh token from the body **only** when `X-Client: mobile`; otherwise only from the `mp_refresh` cookie. Web must send requests with `credentials: 'include'`.
+- `/refresh` failure (missing, unknown, expired, revoked or reused token) → `401`; web also gets the cookie cleared. Reuse revokes every token from that login.
+- `/logout` revokes every token from that login (the session), clears the cookie on web, and returns `204` even if no refresh token is sent.
+- `409` on `/register` reveals that an email is registered. It stays in v1 by decision (2026-11-08). **v1.1 change:** `/register` returns `202` whether or not the email exists and sends a verification email; tokens are issued only after verification.
+- `/register` returns `Location: /api/v1/identity/me`. Email is unique case-insensitively. `dateOfBirth` must be a past date.
+- `UserProfile.roles` for a self-registered user is `["Patient"]`. The `role` JWT claim is a string with one role and an array with several.
+- Dev gateway: `http://localhost:5080`; CORS allows `http://localhost:5173` with credentials and the headers `Authorization`, `Content-Type`, `X-Client`.
+
 ## Status codes
 
 400 validation (Problem Details with `errors` map) · 401 bad credentials/expired token · 409 email already registered · 423 locked out · 429 rate limited.
