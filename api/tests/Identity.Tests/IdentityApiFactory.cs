@@ -10,12 +10,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
+using Npgsql;
+using Testcontainers.PostgreSql;
 
 namespace Identity.Tests;
 
 /// <summary>
-/// Runs the real Identity service in-process against an in-memory SQLite database and a controllable clock.
-/// All data is synthetic. PostgreSQL-specific behaviour (schema, migrations) is not covered here — see api/README.md.
+/// Runs the real Identity service in-process with a controllable clock. All data is synthetic.
+/// Default: in-memory SQLite (fast, no Docker). With MEDIPATH_TEST_DB=postgres: a real PostgreSQL 17
+/// (Testcontainers, one container per test run, one fresh database per factory) with the EF Core migrations applied.
 /// </summary>
 public sealed class IdentityApiFactory : WebApplicationFactory<Program>
 {
@@ -23,12 +26,41 @@ public sealed class IdentityApiFactory : WebApplicationFactory<Program>
     public const string AdminPassword = "synthetic-admin-pass-0001";
     public static readonly Guid AdminOrg = Guid.Parse("00000000-0000-0000-0000-00000000a001");
 
-    private readonly SqliteConnection _connection = new("DataSource=:memory:");
+    public static bool UsePostgres { get; } =
+        string.Equals(Environment.GetEnvironmentVariable("MEDIPATH_TEST_DB"), "postgres", StringComparison.OrdinalIgnoreCase);
+
+    private static readonly Lazy<PostgreSqlContainer> Container = new(() =>
+    {
+        var c = new PostgreSqlBuilder().WithImage("postgres:17").Build();
+        c.StartAsync().GetAwaiter().GetResult();
+        return c; // Testcontainers' resource reaper removes it when the test process exits.
+    });
+
+    private readonly SqliteConnection? _connection;
+    private readonly string? _pgConnectionString;
     public int AuthPermitPerMinute { get; init; } = 10_000;
 
     public FakeTimeProvider Clock { get; } = new(DateTimeOffset.UtcNow);
 
-    public IdentityApiFactory() => _connection.Open();
+    public IdentityApiFactory()
+    {
+        if (!UsePostgres)
+        {
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
+            return;
+        }
+
+        var admin = Container.Value.GetConnectionString();
+        var dbName = $"identity_test_{Guid.NewGuid():N}";
+        using (var conn = new NpgsqlConnection(admin))
+        {
+            conn.Open();
+            using var cmd = new NpgsqlCommand($"CREATE DATABASE \"{dbName}\"", conn);
+            cmd.ExecuteNonQuery();
+        }
+        _pgConnectionString = new NpgsqlConnectionStringBuilder(admin) { Database = dbName }.ConnectionString;
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -42,7 +74,13 @@ public sealed class IdentityApiFactory : WebApplicationFactory<Program>
         {
             s.RemoveAll<TimeProvider>();
             s.AddSingleton<TimeProvider>(Clock);
-            s.AddDbContext<IdentityDbContext>(o => o.UseSqlite(_connection));
+            if (_connection is not null)
+                s.AddDbContext<IdentityDbContext>(o => o.UseSqlite(_connection));
+            else
+                // Same configuration as Program.cs, so startup runs MigrateAsync against the `identity` schema.
+                s.AddDbContext<IdentityDbContext>(o => o
+                    .UseNpgsql(_pgConnectionString, x => x.MigrationsHistoryTable("__ef_migrations_history", IdentityDbContext.Schema))
+                    .UseSnakeCaseNamingConvention());
         });
     }
 
@@ -65,7 +103,7 @@ public sealed class IdentityApiFactory : WebApplicationFactory<Program>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (disposing) _connection.Dispose();
+        if (disposing) _connection?.Dispose();
     }
 }
 

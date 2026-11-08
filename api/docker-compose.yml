@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: medipath
       POSTGRES_PASSWORD: ${MEDIPATH_DB_PASSWORD:?Set MEDIPATH_DB_PASSWORD (see api/README.md)}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - medipath-pg:/var/lib/postgresql/data
     healthcheck:

@@ -33,6 +33,14 @@ async function renderWith(ui: ReactNode, responses: Response[], store = memorySt
   return ctx;
 }
 
+// The first React Native render in a worker lazily loads and transforms RN internals; on a cold
+// Jest cache that takes ~5 s, which hit the 5 s default timeout of whichever test ran first.
+// Pay that cost once here, outside any test's timeout.
+beforeAll(async () => {
+  await renderWith(<LoginScreen />, []);
+  screen.unmount();
+}, 60_000);
+
 describe('LoginScreen', () => {
   it('validates required fields without calling the API', async () => {
     const { fetchImpl } = await renderWith(<LoginScreen />, []);

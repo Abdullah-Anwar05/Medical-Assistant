@@ -31,16 +31,31 @@ dotnet user-secrets set "SeedAdmin:Email" "synthetic.admin@medipath.test" --proj
 dotnet user-secrets set "SeedAdmin:Password" "<12+ chars>" --project src/Services/Identity
 ```
 
-## Run
+## Run (PostgreSQL in Docker)
+
+Prerequisite: Docker Desktop running. PostgreSQL is published on `127.0.0.1:5432` only.
 
 ```bash
-export MEDIPATH_DB_PASSWORD=<yours>
+cd api
+# 1. One-time: choose a DB password. api/.env is git-ignored; compose reads it automatically.
+echo "MEDIPATH_DB_PASSWORD=<random>" > .env
+dotnet user-secrets set "ConnectionStrings:MediPath" "Host=localhost;Database=medipath;Username=medipath;Password=<same random>" --project src/Services/Identity
+# (plus Jwt:SigningKey and SeedAdmin:* from the Configuration section)
+
+# 2. Start PostgreSQL
 docker compose up -d
+
+# 3. Start Identity (applies migrations to schema `identity`, seeds the PlatformAdmin) and the gateway, in two terminals
 dotnet run --project src/Services/Identity --launch-profile http
 dotnet run --project src/Gateway --launch-profile http
 ```
 
-Identity applies its EF Core migrations (schema `identity`) on startup.
+Check: `curl -i http://localhost:5080/api/v1/identity/me` returns `401`.
+Inspect the DB: `docker exec -it medipath-postgres psql -U medipath -d medipath -c '\dt identity.*'`.
+
+If `dotnet run` fails with "Access is denied" starting the `.exe` (sandboxed shells), build and run the DLL instead:
+`ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5101 dotnet src/Services/Identity/bin/Debug/net10.0/Identity.Api.dll`
+(gateway: `ASPNETCORE_URLS=http://localhost:5080 dotnet src/Gateway/bin/Debug/net10.0/Gateway.dll`; run each from its project folder).
 
 **No Docker?** Development-only fallback to a local SQLite file (`identity-dev.db`, git-ignored; no migrations, schema created directly):
 
@@ -51,10 +66,13 @@ Database__Provider=Sqlite dotnet run --project src/Services/Identity --launch-pr
 ## Tests
 
 ```bash
-dotnet test
+dotnet test                              # fast path: in-memory SQLite, no Docker
+MEDIPATH_TEST_DB=postgres dotnet test    # real PostgreSQL 17 via Testcontainers, migrations applied
 ```
 
-The integration tests host the real Identity service in-process (`WebApplicationFactory`) on in-memory SQLite with a fake clock. All data is synthetic.
+The integration tests host the real Identity service in-process (`WebApplicationFactory`) with a fake clock.
+In PostgreSQL mode one container is started per run and each test class gets a fresh database; Docker must be running.
+`DatabaseProviderTests` fails if the requested provider was not actually used. All data is synthetic.
 
 ## Migrations
 
@@ -65,7 +83,8 @@ dotnet ef migrations add <Name> -p src/Services/Identity -o Data/Migrations
 
 ## Open issues
 
-- **PostgreSQL path not yet exercised.** The dev machine used to build this had no Docker or PostgreSQL; the migration was generated but never applied, and tests run on SQLite. Add a Testcontainers PostgreSQL test once Docker is available.
+- Using a refresh token after logout is audited as `identity.refresh.reuse_detected` (it is a revoked token); the response is the correct `401`, but the audit label overstates it.
+- CI should run `MEDIPATH_TEST_DB=postgres dotnet test` (no CI pipeline yet).
 - **Common-password list is a placeholder** (`Security/common-passwords.txt`, ~40 entries). Replace with a full breached list or an HIBP k-anonymity check.
 - Lockout is per email, so anyone can lock a known email out for 15 minutes (inherent to the contract's lockout rule). Rate limiting is per IP and in-memory (single instance only).
 - Access-token signing is HS256 with a shared key. Move to asymmetric keys (RS256/ES256 + JWKS) before other services validate tokens independently.
