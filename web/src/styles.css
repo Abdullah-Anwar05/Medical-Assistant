@@ -1,0 +1,226 @@
+/* Design tokens: deep navy / teal, white, pale neutrals.
+   Contrast (WCAG 2.2 AA, checked against white unless noted):
+   navy-900 #0b2545 ≈ 15:1 · teal-700 #0f6e6e ≈ 6:1 · ink-600 #4a5568 ≈ 7.5:1 · error #b42318 ≈ 6.4:1
+   white on navy-900 ≈ 15:1 · white on teal-700 ≈ 6:1 · focus ring #f2a900 on navy is the outer ring. */
+:root {
+  --color-navy-900: #0b2545;
+  --color-navy-700: #13315c;
+  --color-teal-700: #0f6e6e;
+  --color-teal-800: #0b5555;
+  --color-teal-50: #e6f4f3;
+  --color-white: #ffffff;
+  --color-neutral-50: #f7f8fa;
+  --color-neutral-200: #e2e6ec;
+  --color-ink-900: #1a202c;
+  --color-ink-600: #4a5568;
+  --color-border: #6b7686; /* ≥3:1 for input borders (1.4.11) */
+  --color-error: #b42318;
+  --color-error-bg: #fdecea;
+  --color-focus: #f2a900;
+
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --radius: 6px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--color-ink-900);
+  background: var(--color-neutral-50);
+}
+
+a {
+  color: var(--color-teal-700);
+}
+a:hover {
+  color: var(--color-teal-800);
+}
+
+/* Visible focus for every interactive element (2.4.7 / 2.4.11). */
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-navy-900);
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-3);
+  top: -100px;
+  background: var(--color-white);
+  color: var(--color-navy-900);
+  padding: var(--space-2) var(--space-3);
+  z-index: 10;
+}
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-navy-900);
+  color: var(--color-white);
+}
+.site-header.staff {
+  background: var(--color-teal-800);
+}
+.site-header a,
+.site-header .btn-link {
+  color: var(--color-white);
+}
+.brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-decoration: none;
+}
+
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-3);
+}
+main:focus {
+  outline: none;
+}
+
+h1 {
+  color: var(--color-navy-900);
+  font-size: 1.75rem;
+  line-height: 1.25;
+  margin-top: 0;
+}
+
+.card {
+  background: var(--color-white);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.field {
+  margin-bottom: var(--space-4);
+}
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+.field input:not([type='checkbox']) {
+  display: block;
+  width: 100%;
+  min-height: 44px; /* 2.5.8 target size, comfortable for touch */
+  padding: var(--space-2);
+  font: inherit;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-white);
+}
+.field input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+.field.checkbox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.field.checkbox .field-error {
+  flex-basis: 100%;
+}
+.field.checkbox input {
+  width: 24px;
+  height: 24px;
+}
+.field.checkbox label {
+  display: inline;
+  font-weight: 400;
+  margin: 0;
+}
+.hint {
+  color: var(--color-ink-600);
+  margin: 0 0 var(--space-1);
+}
+.field-error {
+  color: var(--color-error);
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+.error-summary {
+  border: 3px solid var(--color-error);
+  background: var(--color-error-bg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius);
+}
+.error-summary h2 {
+  margin: 0 0 var(--space-1);
+  font-size: 1.125rem;
+  color: var(--color-error);
+}
+.error-summary p {
+  margin: 0;
+}
+
+.btn-primary {
+  display: inline-block;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-white);
+  background: var(--color-teal-700);
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+}
+a.btn-primary {
+  color: var(--color-white);
+  line-height: 28px;
+}
+.btn-primary:hover {
+  background: var(--color-teal-800);
+}
+.btn-primary:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+.btn-link {
+  background: none;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  min-height: 44px;
+}
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}

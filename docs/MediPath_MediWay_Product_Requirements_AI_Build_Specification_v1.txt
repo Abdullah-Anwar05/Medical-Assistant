@@ -1,0 +1,627 @@
+
+MEDIPATH  +  MEDIWAY
+Product Requirements Document &amp; AI Agent Build Specification
+UK-first digital surgical care, private medical insurance administration and NHS/private pathway coordination
+
+Recreated illustrative concept board: patient-facing mobile app screens.
+Document control
+Value
+Version
+1.0 — consolidated requirements draft
+Prepared
+8 November 2026
+Primary audience
+AI software-development agent, product designer, solution architect, engineering team, clinical safety and regulatory reviewers
+Product names
+MediPath (patient app); MediWay (hospital, surgeon and insurer administration web portal)
+Initial clinical scope
+Elective hip and knee arthroplasty, beginning with total knee replacement
+Target market
+United Kingdom, with NHS and private/insured/self-pay pathways
+Status
+Concept requirements; not a validated clinical specification or production system
+How the AI development agent must use this document
+Treat this document as the consolidated source of product intent and functional requirements. Do not assume that any third-party integration, clinical data feed, insurer API, hospital booking connection, AI diagnostic capability or live waiting-time feed already exists. Build modular interfaces and clearly labelled simulated data until contracts, credentials, data permissions, clinical validation and technical specifications are supplied.
+Where a requirement is ambiguous, preserve it as a configurable workflow and flag it for product-owner, clinical, legal or insurer confirmation. Never invent clinical thresholds, insurer rules, surgeon outcome statistics, hospital availability or authorisation decisions.
+
+1. Executive summary
+MediPath and MediWay are two connected products forming one digital ecosystem for elective surgical care. MediPath is the patient-facing mobile application and responsive patient website. MediWay is the secure browser-based workspace for hospitals, consultants, secretaries, referral coordinators, insurance administrators and authorised operational staff.
+The platform is intended to guide a patient from initial symptoms and diagnosis through specialist discovery, clinical assessment, insurance eligibility and pre-authorisation (where relevant), funding clearance, booking, surgery, rehabilitation and outcome collection. The first release should focus on orthopaedic pathways, especially total knee replacement for osteoarthritis, then expand to hip replacement and other elective specialties.
+1.1 Product vision
+“From diagnosis to movement. One connected journey.” Empower patients to make informed treatment choices, reduce fragmented administration, improve the completeness of referrals and funding submissions, and give care teams a coordinated view of the patient pathway.
+1.2 Product principles
+Patient-centred, accessible, transparent and mobile-first.
+Clinical safety before automation or commercial optimisation.
+Separate clinical suitability, insurer eligibility, insurer authorisation, financial clearance and confirmed booking statuses.
+Show provenance, date, context, limitations and denominators for every outcome statistic.
+Do not rank clinicians using paid placement or unadjusted misleading metrics.
+Use AI as decision support with accountable human review for consequential clinical decisions.
+Build an integration-ready architecture; never represent mock data as live data.
+2. Product scope and users
+User / actor
+Primary goals
+Main interface
+Patient / carer
+Understand options, share records, compare providers, track care and recovery
+MediPath mobile app + web
+Consultant surgeon
+Review referrals, clinical summaries, investigations and pathway status
+MediWay clinician workspace
+Secretary / PA
+Coordinate appointments, documents, referrals and patient communications
+MediWay administration portal
+Hospital booking team
+Manage clinic slots, theatre scheduling, admissions and cancellations
+MediWay scheduling
+Insurance administrator
+Check policy evidence, prepare pre-authorisation packs, record insurer responses and financial clearance
+MediWay insurance module
+Hospital manager
+Monitor pathway throughput, incomplete referrals, delays, cancellations and outcomes
+MediWay reporting
+Platform administrator
+Manage organisations, users, permissions, configuration and integrations
+MediWay platform administration
+Insurer / payer (future)
+Receive complete requests, respond to queries, authorise covered treatment and process claims
+Secure insurer integration or portal (subject to agreement)
+3. Product boundaries and delivery assumptions
+3.1 In scope
+Patient registration, identity, consent and profile management.
+Medical history, symptoms, pain/function questionnaires, medications, allergies, comorbidities and previous treatment.
+Upload and management of X-rays, MRI, CT, reports, referral letters and relevant clinical documents.
+Procedure-specific discovery and hospital/surgeon search by postcode or location.
+Surgeon profiles, verified experience, procedure volume, registry data, patient-reported outcomes and patient experience.
+NHS, private insured and private self-pay pathway support.
+Insurance policy details, network checks, evidence checklist, pre-authorisation workflow, queries, approval recording and funding clearance.
+Referral and secretary workflow, patient communications, appointment and theatre coordination.
+Patient QR/barcode identifier, secure access and check-in use cases.
+Roadmap, reminders, estimated timeframes, confirmed dates and post-operative recovery tracking.
+AI-assisted extraction, summarisation and workflow support, subject to safety and regulatory assessment.
+3.2 Out of scope for initial MVP unless separately approved
+Autonomous diagnosis, autonomous surgical eligibility decisions or autonomous urgency allocation.
+Unsupervised interpretation of radiology images for diagnosis or surgical planning.
+Guaranteed insurer coverage or automatic approval without insurer confirmation.
+Guaranteed real-time theatre availability unless connected to a validated scheduling source.
+Public display of non-published surgeon-level complication or infection rates.
+Processing real patient data in a prototype or development environment without approved security, privacy and clinical governance.
+3.3 Critical assumptions
+The launch jurisdiction is the UK. NHS rules, private insurer policies, professional recognition, data protection, medical device regulation and interoperability must be checked for the relevant UK nation and deployment context. This document is a product specification, not legal advice or clinical guidance.
+4. Brand and user experience
+Brand
+Role
+Tagline / positioning
+MediPath
+Patient-facing app and website
+Your journey. Your surgeon. Your recovery.
+MediWay
+Hospital, consultant and administrative platform
+Connected clinical pathways and insurance administration.
+Use a reassuring, modern clinical identity: deep navy/teal, white and pale neutral backgrounds; clear typography; high contrast; accessible controls; minimal cognitive load. Avoid design that resembles an insurer decision letter or implies official NHS endorsement. NHS and insurer marks may only be used with permission.
+
+Concept image 1 — MediPath patient app screens (recreated wireframe concept).
+
+Concept image 2 — patient surgical roadmap (recreated concept diagram).
+
+5. MediPath patient app and website requirements
+5.1 Onboarding and account
+Support secure registration, sign-in, account recovery and multi-factor authentication where appropriate.
+Capture minimum identity/contact data needed for the intended service; support verified identity workflows appropriate to deployment.
+Explain platform role, limitations, privacy notice, terms, data sharing and consent/authorisation choices in plain language.
+Allow a patient to nominate a carer or representative with granular, revocable access.
+Support accessibility settings, language preference, communication preference and reasonable adjustments.
+5.2 Patient health profile
+Data group
+Fields / behaviour
+Demographics
+Name, date of birth, contact details, postcode, preferred contact method; collect only what is necessary.
+Clinical history
+Current and past conditions, previous surgery, relevant family history if clinically requested, comorbidities.
+Symptoms
+Affected joint, laterality, onset/duration, pain, stiffness, swelling, instability, mobility and functional impact.
+Patient-reported measures
+Configurable validated pain, function and quality-of-life questionnaires; instrument name, version, date and score retained.
+Medication / allergy
+Current medication, dose where relevant, allergy and reaction, reconciliation date.
+Previous treatment
+Physiotherapy, exercise, analgesia, injections, aids, other conservative care, response and dates.
+Clinical documents
+Referral letters, clinic letters, imaging reports, blood tests, relevant records and provenance.
+Preferences
+Location, accessibility, spoken language, communication requirements, appointment preferences and optional cultural/religious accommodation requests.
+Questionnaires must be configurable by specialty and clinical governance. Do not treat a patient-entered answer as a verified diagnosis. Record who supplied each item and when.
+5.3 Imaging and document management
+Accept supported document formats and image files; define file size, malware scanning, retention and upload limits.
+Support DICOM imaging and DICOMweb integration as a planned specialist capability; do not treat a screenshot/photo of an X-ray as equivalent to a full diagnostic imaging study.
+Store original file, metadata, upload timestamp, uploader, source organisation, study date, body region, modality, laterality and report link where available.
+Provide secure preview/download subject to role permission; preserve original source and version history.
+AI may extract metadata or produce a draft summary, but must display confidence/uncertainty and allow clinician correction.
+Do not allow AI-generated findings to overwrite radiologist or clinician reports.
+5.4 Treatment and procedure discovery
+A patient should be able to search by diagnosis, symptom, procedure or referral. Example journey: osteoarthritis → knee osteoarthritis → total knee arthroplasty / knee replacement. The interface must explain that the app does not decide whether surgery is clinically appropriate.
+Support synonyms, lay terms and clinical terms, including arthroplasty and total knee replacement.
+Show a plain-language procedure explanation, typical pathway stages, questions to ask the surgeon and links to authoritative patient information.
+Filter providers by postcode/radius, travel preference, NHS/private/insured/self-pay pathway, insurer network, accessibility and language.
+Show whether a result is a hospital, trust, clinic, consultant or independent provider, and distinguish each clearly.
+5.5 Hospital and surgeon discovery
+Map and list view of relevant NHS trusts, NHS hospitals and independent hospitals near a patient-selected postcode.
+Allow search by hospital name, trust, consultant name, specialty and procedure.
+Show network status only when confirmed by the insurer or a maintained verified provider directory.
+Display distance or travel estimates only from a reliable geolocation/routing service and with clear caveats.
+Provide source and last-updated date for hospital and clinician information.
+5.6 Surgeon profile requirements
+Profile field
+Requirement / presentation
+Identity and credentials
+Name, GMC registration identifier/status, qualifications, current role, verified employing/privilege organisations; source and last verified date.
+Specialty
+Subspecialty, joint focus, procedures performed and professional interests.
+Experience / volume
+Relevant procedure count per year and/or published reporting period; identify source, period and whether surgeon performed or supervised.
+NJR information
+Link to official NJR profile/outcomes where available; reproduce only permitted, accurately described data.
+Outcomes
+PROMs, revision and other validated outcomes only where data are available, comparable and lawfully reusable.
+Complications
+Hospital and surgeon measures only if robust, attributable, sufficiently powered, risk-adjusted and publishable. Otherwise show unavailable.
+Length of stay / discharge
+Define cohort, period, median/mean, exclusions and whether hospital-level or surgeon-level.
+Patient experience
+Verified, moderated testimonials with consent, date, procedure context and disclosure of selection bias.
+Languages
+Languages spoken and level/verification method; interpreter availability.
+Availability
+Consultation availability and surgery estimates from connected systems; distinguish estimate from confirmed date.
+Financial information
+Consultation fee, known package/fee information, insurer recognition and self-pay quote status where verified.
+Do not invent a surgeon rating or create a composite score without an approved methodology. The NJR states that its public outcomes website provides recent practice information including procedure volumes; its surgeon outcomes monitoring uses risk-adjusted revision and mortality measures, while individual surgeon revision rates are not publicly published through that website. Do not imply that unavailable NJR data is accessible or publish private internal monitoring information.
+5.7 Patient testimonials
+Obtain explicit permission for publication and separate consent for identifiable images/video.
+Verify that the reviewer is a real patient without exposing protected health information.
+Do not incentivise positive reviews or suppress legitimate negative feedback.
+Moderate for abuse, personal data, advertising claims and clinical misinformation; preserve a fair process.
+Display date, procedure context and a statement that individual experiences do not predict another patient's outcome.
+5.8 Patient barcode / QR code
+Generate a unique opaque patient token; never encode diagnosis, name, date of birth or medical record contents directly in a QR code.
+Require authenticated staff session and role-based authorisation after scanning.
+Support token expiry, revocation, rotation and audit logging.
+Use for check-in, matching a referral to the correct patient and linking an encounter to the record; not as a substitute for identity verification.
+6. MediPath insurance pathway
+6.1 Insurance onboarding
+Capture insurer name, policy/member number, policyholder/dependent relationship, policy dates and contact details only as necessary.
+Capture patient-permitted policy documents and insurer correspondence securely.
+Record whether policy cover is unknown, check requested, eligible subject to terms, excluded, moratorium/underwriting query, pre-authorisation required or confirmed by insurer.
+Capture excess, co-payment, annual/episode limit, outpatient/inpatient limits, exclusions, waiting periods and any shortfall only when verified.
+Never promise cover based solely on a selected insurer name or a generic benefit description.
+6.2 Provider network checks
+For the selected procedure and location, verify whether the consultant, hospital/facility and proposed procedure are recognised/eligible under the patient's exact policy and authorisation conditions. The same insurer may have different products, networks, fee schedules and policy terms.
+6.3 Knee arthroplasty funding evidence pack
+Evidence item
+Purpose / rule
+Consultant referral / clinic letter
+Diagnosis, history, examination, recommendation and clinical rationale.
+Imaging report / relevant images
+Support assessment; original report and source retained.
+Symptom and functional impact
+Duration, pain, walking distance, sleep, work/daily activity and validated PROMs where appropriate.
+Conservative management
+Treatments tried, duration, adherence, response and contraindications; do not invent a universal mandatory sequence.
+Comorbidities and risk factors
+Relevant medical history and optimisation requirements as assessed by clinicians.
+Proposed procedure
+Procedure name, laterality, coding, planned setting and expected care episode.
+Consultant and facility details
+Recognition/network evidence and identifiers.
+Policy and authorisation data
+Policy details, insurer reference, requested service and insurer-specific documents.
+Estimate / fees
+Consultant, anaesthetist, hospital, implant and other costs where applicable; identify quote assumptions.
+6.4 Authorisation workflow states
+State
+Meaning
+Allowed transition
+Not checked
+Policy not yet verified
+Check requested / self-pay route
+Verification pending
+Insurer or policy details being checked
+Eligible / ineligible / more information
+Evidence incomplete
+Required documents missing
+Evidence complete / query
+Ready to submit
+Administrative checklist complete
+Submitted
+Submitted
+Request sent through approved channel
+Insurer query / authorised / declined / withdrawn
+Insurer query
+More evidence or clarification requested
+Response submitted / closed
+Authorised
+Insurer has issued approval subject to stated terms
+Financial clearance review
+Partially authorised
+Some services or costs approved; conditions remain
+Clarification / patient agreement / alternative
+Declined
+Insurer has declined requested funding
+Appeal / self-pay / NHS options, where appropriate
+Financial clearance
+Scope, dates, provider, fees, excess and shortfall reconciled
+Booking may proceed when clinical and operational conditions also met
+Expired / amended
+Approval expired or requested care changed
+Re-authorise / amend request
+An approval must record insurer, authorisation reference, date, validity/expiry, approved procedure, laterality, consultant, facility, fee limits, exclusions, conditions and evidence source. Staff must confirm that the approval covers the actual proposed care episode.
+6.5 Insurer integrations
+Initial MVP: staff-assisted verification and secure document submission, with manual recording of insurer responses. Later: API or secure portal integration only after a contract, technical documentation, security assessment and insurer approval. Build an insurer adapter layer so rules and connection methods are configurable per payer. Do not scrape insurer portals or automate credential sharing.
+Insurer directory and policy-rule versioning with effective dates.
+Provider recognition verification and audit trail.
+Secure submission bundle, attachment manifest and delivery receipt.
+Insurer query inbox, response deadlines and resubmission history.
+Approval/decline response capture with structured fields and original correspondence.
+Claims/billing hand-off and reconciliation as a later phase.
+7. MediWay hospital and administrator portal
+
+Concept image 3 — MediWay hospital administration and insurance worklist dashboard.
+7.1 Worklist and case management
+Role-based queues for new referrals, incomplete clinical evidence, insurance checks, ready-to-submit cases, insurer queries, authorised cases, booking-ready cases and overdue tasks.
+Search by patient ID, referral ID, consultant, hospital, procedure, insurer and status.
+Assign case owner, priority, due date and escalation; record reason and user for every change.
+Show task history and next required action, not merely a status label.
+Support configurable SLA targets without implying insurer turnaround guarantees.
+7.2 Referral intake and secretary workflow
+Receive referral from patient, GP, consultant, e-referral integration or approved external source.
+Match patient identity safely and check for duplicates.
+Create a referral episode with diagnosis, procedure requested, laterality, source and date.
+Allocate to consultant/secretary/triage queue.
+Request missing documents and notify patient/referrer.
+Arrange consultation and track attendance/outcome.
+Record consultant recommendation and proposed procedure.
+Open insurer funding workflow or NHS/self-pay pathway as appropriate.
+Once clinical, funding and operational checks are complete, progress to pre-operative assessment and theatre scheduling.
+7.3 Insurance administrator workspace
+Display a structured evidence checklist and completeness indicator.
+Allow upload, categorisation, versioning and validation of documents.
+Generate a consistent insurer submission pack from approved templates.
+Require staff confirmation before sending.
+Record channel, recipient, timestamp, delivery reference and attachment list.
+Track insurer queries and assign actions.
+Record decision and transcribe approval terms into structured fields; require second-person verification for high-impact financial details if configured.
+Block the 'financially cleared' status until all required fields and checks are complete.
+7.4 Funding and financial clearance
+Reconcile authorisation against the exact procedure, laterality, consultant, facility, date window and approved fee schedule.
+Record known excess, co-payment, benefit limit, excluded items, shortfall and patient payment agreement.
+Show quote validity and what is included/excluded (surgeon, anaesthetist, hospital, implant, diagnostics, physiotherapy, follow-up).
+Flag any change to consultant, facility, procedure, implant or date that may require insurer amendment.
+Separate patient consent to proceed financially from insurer approval and clinical consent.
+7.5 Booking and theatre coordination
+Integrate with hospital patient administration and theatre management systems where available.
+Show clinic and theatre slots only from an authoritative connected source.
+Maintain tentative hold, confirmed appointment, confirmed surgery, cancelled, rescheduled and completed states.
+Support cancellation lists and patient opt-in for short-notice slots.
+Trigger pre-operative assessment, anaesthetic review, tests and patient instructions.
+Never show an estimated date as a confirmed date.
+8. End-to-end surgical roadmap
+
+Concept image 4 — end-to-end treatment pathway.
+Milestone
+Patient view
+Staff / system activity
+Profile created
+Profile completion and consent
+Identity, consent and data validation
+Referral received
+Referral received / next step
+Intake, duplicate check and allocation
+Clinical review
+Review in progress / appointment
+Consultant assessment and evidence review
+Imaging
+Imaging requested / received / reviewed
+Document and imaging workflow
+Treatment decision
+Options explained; recommendation recorded
+Clinician records decision and rationale
+Surgeon selection
+Compare suitable specialists
+Directory and network verification
+Insurance check
+Policy check pending / outcome
+Policy and provider eligibility verification
+Pre-authorisation
+Submitted / query / approved / declined
+Submission and insurer correspondence
+Financial clearance
+Costs and patient contribution explained
+Reconcile approval and patient liability
+Pre-operative assessment
+Tasks, tests and instructions
+Fitness/anaesthetic assessment and optimisation
+Surgery booking
+Estimated window or confirmed date
+Theatre scheduling and admission planning
+Surgery
+Admission and procedure information
+Encounter, procedure and discharge records
+Recovery
+Rehabilitation, symptoms and follow-up
+PROMs, complications and follow-up workflow
+Outcome review
+Progress and patient experience
+Outcome collection and quality reporting
+9. AI and clinical decision support
+AI must be modular and purpose-limited. The first release should use AI for administrative assistance and clinician-reviewed information extraction, not autonomous clinical decision-making.
+9.1 Permitted initial AI functions
+Extract document metadata and draft a structured clinical summary with source citations to the uploaded document/page.
+Identify missing fields or inconsistent dates, laterality, patient identifiers and procedure terminology.
+Summarise symptom history and conservative treatments for clinician review.
+Classify administrative workflow completeness and suggest the next non-clinical task.
+Explain patient pathway stages in plain language using approved content.
+Assist staff in preparing a draft insurer evidence pack, with human verification before submission.
+9.2 Higher-risk AI functions requiring separate approval
+Radiology image interpretation, OA grading, disease severity scoring or diagnostic suggestions.
+Urgency/triage scoring or predicting time-to-treatment.
+Clinical eligibility for arthroplasty, surgical risk prediction or treatment recommendation.
+Surgeon ranking based on clinical outcome predictions.
+These functions may constitute medical device software depending on intended purpose and claims. Before implementation, determine MHRA qualification/classification, conformity route, evidence requirements, human factors, clinical validation, post-market monitoring and applicable AI governance. Do not infer urgency from radiographic severity alone. A clinician must assess symptoms, function, examination, comorbidity, red flags, patient preference and clinical context.
+9.3 Clinical urgency safeguards
+AI may flag potentially urgent content for prompt human review; it must not silently assign a definitive urgency category.
+Provide emergency advice and escalation pathways based on clinically approved content, not a routine waiting-list workflow.
+Record model/version, input sources, output, confidence/uncertainty, human reviewer, override and rationale.
+Monitor bias and performance across relevant patient groups; do not use religion, ethnicity, language, wealth or marketing value to determine clinical priority.
+Allow clinician override and preserve an audit trail.
+10. Data model and core entities
+Entity
+Key fields / relationships
+Patient
+patient_id, demographics, contact, identity verification, consent, communication preferences
+PatientProfile
+history, symptoms, conditions, medications, allergies, function scores, preferences
+ClinicalDocument
+document_id, patient_id, type, source, date, version, storage reference, access classification
+ImagingStudy
+study_id, patient_id, modality, body part, laterality, DICOM identifiers, report reference
+Referral
+referral_id, patient_id, source, specialty, diagnosis, requested procedure, laterality, status, owner
+Encounter
+consultation/admission date, clinician, organisation, notes, decision, plan
+Practitioner
+practitioner_id, GMC identifier, qualifications, specialties, language, organisations
+Organisation
+hospital/trust/clinic, address, type, service, insurer network relationships
+OutcomeMetric
+metric, numerator, denominator, period, risk adjustment, source, publication date, limitations
+InsurerPolicy
+insurer, policy/product, policyholder, effective dates, limits, exclusions, verification state
+Authorisation
+request, insurer reference, submitted documents, decision, approved scope, expiry, conditions
+FundingClearance
+fees, benefits, excess, co-pay, shortfall, quote, patient agreement, verifier
+Appointment
+type, provider, location, start/end, tentative/confirmed/cancelled status
+SurgeryEpisode
+procedure, laterality, surgeon, hospital, planned/actual date, implant and episode data
+PathwayTask
+owner, due date, status, dependency, escalation, audit events
+PROM / Experience
+instrument, score, timing, consent, provenance, outcome and testimonial permission
+AuditEvent
+actor, action, object, timestamp, reason, before/after reference, source IP/device as appropriate
+11. Architecture and integration requirements
+11.1 Recommended architecture
+Patient mobile app: cross-platform native or cross-platform framework; responsive patient web app.
+Staff web portal: responsive web application with role-based modules.
+Backend: modular API services for identity, patient record, referral, directory, insurer workflow, scheduling, notifications, document management and analytics.
+Database: relational transactional store for core entities; encrypted object storage for documents and imaging; audit/event store with tamper-resistant controls.
+Integration layer: adapter pattern for insurer APIs, hospital PAS/EPR, theatre scheduling, NHS referral services, identity and imaging systems.
+AI service boundary: separately versioned models/services with explicit input/output contracts and human-review workflow.
+Observability: monitoring, tracing, alerting, security events, audit logs and service health.
+11.2 Interoperability
+Use HL7 FHIR resources and implementation guides where supported by counterpart systems. Candidate mappings include Patient, Practitioner, Organization, Condition, AllergyIntolerance, MedicationStatement/MedicationRequest, Observation, DiagnosticReport, ImagingStudy, DocumentReference, ServiceRequest, Encounter, Appointment, CarePlan, Task, Coverage, Claim and ClaimResponse. Exact resource/profile selection must be confirmed against the target integration and UK implementation guidance.
+Use terminology standards and controlled code sets appropriate to the data domain; validate SNOMED CT, ICD-10, OPCS-4, CCSD and other coding needs with clinical/insurer partners.
+Support DICOM/DICOMweb for imaging exchange where counterpart systems permit.
+Maintain source identifiers, mapping provenance and reconciliation rules.
+Never assume all NHS trusts, private hospitals or insurers expose the same APIs.
+11.3 Integration priority
+Priority
+Integration
+MVP approach
+P0
+Email/SMS/push notifications
+Approved messaging provider; avoid sensitive details in notification previews.
+P0
+Secure document storage
+Encrypted storage, scanning, access control, audit.
+P1
+Insurer workflows
+Staff-assisted secure submission and response recording.
+P1
+GMC / NJR / hospital directory
+Verified directory and links; licensed/approved reuse only.
+P2
+Hospital PAS / EPR
+Pilot-specific integration; FHIR or vendor API where available.
+P2
+Theatre scheduling
+Read availability and write bookings only with authorised integration.
+P2
+DICOM / PACS
+Imaging exchange with clinical governance.
+P3
+Insurer APIs / claims
+Commercial and technical agreements required.
+P3
+NHS e-RS / NHS services
+Only through approved onboarding, access and standards.
+12. Security, privacy and governance
+Treat health information as special category personal data. Identify both an Article 6 lawful basis and an Article 9 condition; document purpose, retention and sharing.
+Complete a Data Protection Impact Assessment before high-risk processing and before live patient deployment.
+Apply data minimisation, privacy by design/default, purpose limitation and transparent privacy notices.
+Encrypt data in transit and at rest; manage keys securely; separate production, test and development environments.
+Use least-privilege role-based access, strong authentication, session controls, periodic access review and organisation-level tenancy isolation.
+Maintain audit logs for viewing, editing, exporting, sharing, authorisation and administrative actions.
+Define retention, deletion, legal hold, subject access, correction, portability and breach response processes.
+Use synthetic/de-identified data in demos and testing; prohibit production patient data in unapproved AI tools.
+Conduct supplier security due diligence, penetration testing, vulnerability management, backups, disaster recovery and incident response.
+Make religion and cultural accommodation preferences optional and patient-controlled; recognise that religious belief is also special category data under UK GDPR.
+13. Clinical safety and regulatory requirements
+The development team must appoint/engage a suitably competent Clinical Safety Officer and maintain a clinical risk management system. Assess applicability and compliance with DCB0129 for manufacture and DCB0160 for deployment/use. The adopting healthcare organisation must perform its own deployment risk assessment. Prepare a hazard log, clinical safety management plan and clinical safety case report as appropriate.
+Assess the product's status under UK medical device rules. Features that merely store, communicate or administratively organise information may be treated differently from software intended to diagnose, predict, monitor or recommend clinical treatment. The intended purpose, claims, functionality and clinical impact determine regulatory status; obtain specialist regulatory advice before release.
+Also assess DTAC, accessibility, NHS information governance, UK GDPR/Data Protection Act, equality and consumer law, advertising/endorsement rules, professional registration verification, medical records retention and applicable devolved-nation requirements.
+14. Commercial and marketplace requirements
+Potential revenue: hospital SaaS subscription, implementation/integration fees, insurer workflow contracts and optional patient-paid services where lawful and transparent.
+Do not sell clinical ranking or allow sponsored placements to distort clinical matching. Label any paid promotion distinctly and keep it separate from clinical suitability and outcome data.
+Disclose conflicts of interest, referral fees and commercial relationships.
+Support NHS, insured private and self-pay pathways without implying that NHS care is inferior or that private treatment is automatically clinically preferable.
+Allow a provider to maintain a verified profile but distinguish self-reported claims from independently verified information.
+15. Non-functional requirements
+Area
+Requirement
+Availability
+Define service-level objectives with pilot customers; provide graceful degradation and maintenance windows.
+Performance
+Fast common search and dashboard interactions; paginate large worklists and avoid loading full imaging payloads unnecessarily.
+Accessibility
+Target WCAG 2.2 AA for web; test mobile accessibility, screen readers, contrast, keyboard navigation and plain language.
+Scalability
+Multi-organisation tenancy; support expansion by specialty, insurer, hospital group and geography.
+Reliability
+Backups, recovery objectives, idempotent integrations, retry queues and reconciliation for failed messages.
+Auditability
+Trace every sensitive read/write and every workflow state transition.
+Interoperability
+Versioned APIs, documented schemas, stable identifiers and mapping provenance.
+Maintainability
+Configurable insurer rules, specialty questionnaires, workflow templates and feature flags.
+Localization
+Language-ready content, time zone handling and UK address/postcode validation.
+Data quality
+Mandatory provenance, timestamps, validation, duplicate detection and correction workflow.
+16. Acceptance criteria and test scenarios
+ID
+Acceptance criterion
+AC-01
+Patient can create an account, complete profile and manage consent/preferences.
+AC-02
+Patient can enter symptoms, medical history, medication, allergies and treatment history; data provenance is retained.
+AC-03
+Patient can upload supported documents; files are scanned, access-controlled and linked to the correct patient.
+AC-04
+Search supports knee osteoarthritis and total knee replacement terminology and returns only configured/verified providers.
+AC-05
+Surgeon profile shows source, date, period, denominator and limitations for every outcome metric.
+AC-06
+Patient can identify insurer and policy status without the system promising coverage.
+AC-07
+MediWay user can see missing evidence and cannot mark a case ready to submit until required checklist items are complete.
+AC-08
+Authorisation submission records channel, timestamp, documents and delivery reference.
+AC-09
+Insurer query can be assigned, answered and resubmitted with full history.
+AC-10
+Authorisation and financial clearance are distinct; booking cannot be released when required approvals are missing.
+AC-11
+A change in surgeon, facility, procedure or laterality flags the need to check whether re-authorisation is required.
+AC-12
+Patient sees estimated and confirmed dates with clear labels and source timestamps.
+AC-13
+QR code contains no direct personal or clinical data and cannot bypass authentication.
+AC-14
+AI outputs are traceable, reviewable and cannot autonomously make high-impact clinical decisions in MVP.
+AC-15
+Role permissions prevent unauthorised users from accessing clinical, financial or insurer documents.
+AC-16
+All sensitive access and state transitions create audit events.
+AC-17
+Patient can access pathway progress, instructions, follow-up and recovery questionnaires.
+AC-18
+Prototype/demo records are visibly labelled synthetic and cannot be mistaken for real patients or real availability.
+17. MVP delivery plan
+Phase
+Build scope
+Exit gate
+0 — Discovery &amp; governance
+Clinical workshops, insurer requirements, user research, DPIA, intended-purpose/regulatory assessment, clinical hazard analysis, data agreements
+Approved workflows, scope, safety plan and pilot partner requirements
+1 — Foundation
+Identity, patient profile, questionnaire, document upload, provider directory, procedure search, basic MediWay referral worklist
+End-to-end synthetic-data demo; security baseline and usability test
+2 — Insured pathway
+Insurer/policy capture, evidence checklist, secure pack generation, query/decision tracking, funding clearance
+Pilot-tested administrative process with at least one insurer/hospital workflow
+3 — Booking &amp; roadmap
+Consultation and theatre scheduling integration, pathway tasks, notifications, QR token, patient roadmap
+Verified scheduling source and operational sign-off
+4 — Outcomes &amp; recovery
+PROMs, patient experience, recovery questionnaires, outcomes reporting and profile updates
+Clinical governance and data quality approval
+5 — Clinical AI
+Only separately approved extraction/triage/imaging functions; validation and post-market monitoring
+Regulatory and clinical safety approval for intended use
+18. Required deliverables from the AI software-development agent
+Create a complete responsive UX/UI design system for MediPath and MediWay using the brand guidance and concept images in this document.
+Produce clickable user journeys for patient onboarding, knee replacement search, surgeon comparison, insurance verification, referral, authorisation, funding clearance, booking and recovery.
+Produce an information architecture, page inventory, navigation map and role/permission matrix.
+Produce a domain model, ERD, API specification, event/state machine and integration contracts.
+Implement synthetic demo data and clear demo labels; never fabricate real surgeon statistics or insurer approval.
+Build patient app and responsive patient website, plus MediWay staff web portal.
+Implement insurer workflow as configurable rules and manual secure submission first; keep adapters ready for future insurer APIs.
+Implement audit logging, security controls, accessibility and error/exception handling.
+Write automated unit, integration, end-to-end, permission and workflow tests against the acceptance criteria.
+Produce deployment architecture, CI/CD plan, monitoring, backup/recovery plan, technical documentation and handover guide.
+Create a separate clinical safety/regulatory backlog; do not declare compliance without evidence and review.
+19. Research references and official links
+The following references support the UK-first design assumptions. They are not endorsements, API access grants or a complete legal/regulatory review. Confirm current versions and terms before implementation.
+NHS England Digital — Clinical risk management standards (DCB0129 / DCB0160) — https://digital.nhs.uk/services/clinical-safety/clinical-risk-management-standards (Manufacturer and deploying-organisation clinical safety standards.)
+NHS England — Clinical safety guidance for technology developers — https://digital.nhs.uk/developer/guides-and-documentation/introduction-to-healthcare-technology/clinical-safety (Developer duties, Clinical Safety Officer and DCB0129 context.)
+NHS England — Digital clinical safety assurance — https://www.england.nhs.uk/long-read/digital-clinical-safety-assurance/ (Clinical safety case, hazard log and lifecycle assurance.)
+MHRA — Guidance on bringing software as a medical device to market — https://www.gov.uk/government/publications/guidance-on-bringing-software-as-a-medical-device-to-market (Current UK SaMD regulatory overview; published 6 November 2026.)
+MHRA — Software and AI as a medical device — https://www.gov.uk/government/publications/software-and-artificial-intelligence-ai-as-a-medical-device (Qualification, classification and AI medical device guidance.)
+NJR — Surgeon and Hospital Outcomes Website — https://www.njrcentre.org.uk/patients/njr-surgeon-and-hospital-outcomes-website/ (Public surgeon/hospital outcomes search and procedure volume information.)
+NJR — Accountability and Transparency Model FAQs — https://www.njrcentre.org.uk/about-the-njr/accountability-and-transparency-faqs/ (Explains NJR monitoring measures and limits on public surgeon-level revision rate publication.)
+ICO — Special category data — https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/a-guide-to-lawful-basis/special-category-data (Health data, Article 6/9 lawful basis, DPIA and safeguards.)
+ICO — Rules on special category data — https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/special-category-data/what-are-the-rules-on-special-category-data/ (Automated decision-making restrictions and data minimisation/security.)
+HL7 — FHIR overview — https://fhir.hl7.org/fhir/overview.html (Healthcare data exchange standard and resource overview.)
+NHS England — e-Referrals — https://www.england.nhs.uk/long-read/e-referrals/ (NHS e-Referral Service overview and referral context.)
+NHS England — Digital clinical safety strategy — https://www.england.nhs.uk/long-read/digital-clinical-safety-strategy/ (Clinical safety and DTAC context.)
+Bupa — Health insurance and pre-authorisation information — https://www.bupa.co.uk/ (Insurer's official website; confirm current member-specific authorisation and provider-recognition requirements directly.)
+AXA Health — Health insurance provider information — https://www.axahealth.co.uk/ (Insurer's official website; confirm current authorisation, recognition and fee rules directly.)
+20. Concept images and prototype asset register
+The original session contained interactive in-chat UI demonstrations rather than separately supplied PNG/JPEG design files. The images below are recreated illustrative wireframes based on those demonstrations so the development agent has portable visual references. They are not final brand artwork, pixel-perfect screenshots, clinical interfaces or evidence of implemented integrations.
+Asset
+Description
+Intended use
+Concept image 1
+MediPath home, patient profile and surgeon discovery mobile screens
+Patient app visual direction
+Concept image 2
+Seven-stage patient pathway from profile to recovery
+Roadmap component and patient progress view
+Concept image 3
+MediWay admin dashboard with referral KPIs and worklist
+Hospital administration portal visual direction
+Concept image 4
+End-to-end surgical roadmap
+Shared pathway state model
+
+Asset 1 — patient app screens.
+
+Asset 2 — hospital administration dashboard.
+
+Asset 3 — surgical roadmap.
+21. Open decisions requiring product-owner confirmation
+Confirm final brand architecture: MediPath patient brand and MediWay operational platform, or a single unified brand.
+Confirm launch geography within the UK (England first is assumed for NHS e-RS references) and later expansion to Scotland, Wales and Northern Ireland.
+Select first pilot hospital group, consultant cohort and private insurer(s).
+Confirm which insurer submission channels and provider recognition directories can be accessed contractually.
+Approve clinical questionnaire set and PROM instruments with orthopaedic clinicians.
+Define intended purpose and claims for any AI imaging, disease grading, triage or urgency functions before development.
+Confirm data controller/processor roles, hosting region, retention schedule, DPIA and data-sharing agreements.
+Agree the methodology and governance for surgeon outcome presentation and testimonials.
+Confirm scheduling/PAS/EPR vendors and integration capabilities for pilot hospitals.
+Agree commercial model, procurement route, patient charges (if any), and separation of paid promotion from clinical matching.
+22. Final instruction to the AI build agent
+Build MediPath and MediWay as one secure, interoperable, multi-organisation healthcare workflow platform. Prioritise a reliable end-to-end insured knee replacement pathway over breadth of specialties. Ensure every status is explicit, every metric is sourced, every consequential decision is attributable to an authorised human or verified external system, and every patient-facing statement distinguishes an estimate from a confirmed clinical, financial or booking decision.
+The product is not complete when a patient can find a surgeon. It is complete when the patient can safely move through the appropriate referral, clinical review, insurer or funding process, booking, treatment and recovery pathway, with the hospital team able to coordinate and audit each step.

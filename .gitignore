@@ -1,0 +1,11 @@
+﻿bin/
+obj/
+node_modules/
+.expo/
+dist/
+*.user
+.vs/
+.env*
+appsettings.Development.json
+.claude/settings.local.json
+*.tsbuildinfo
