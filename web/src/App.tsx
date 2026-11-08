@@ -1,5 +1,5 @@
 import { Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
-import { PATIENT_ROLES, STAFF_ROLES } from './api/types';
+import { PATIENT_ROLES, STAFF_ROLES } from '@medipath/client-core';
 import { useAuth } from './auth/AuthContext';
 import { RequireRole } from './auth/RequireRole';
 import { LoginPage } from './pages/LoginPage';

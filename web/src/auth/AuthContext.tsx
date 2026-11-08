@@ -1,6 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ApiError, identityApi } from '../api/client';
-import type { AuthResponse, LoginRequest, RegisterRequest, Role, UserProfile } from '../api/types';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  hasAnyRole,
+  type LoginRequest,
+  type RegisterRequest,
+  type Role,
+  type SessionManager,
+  type UserProfile,
+} from '@medipath/client-core';
+import { createWebSessionManager } from '../api/client';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
@@ -17,103 +24,54 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Refresh this long before the access token expires. */
-const REFRESH_LEAD_MS = 60_000;
+/** A refresh that failed for any reason other than a rejected token: log it and treat the user as signed out. */
+function signOutAfterUnexpectedError(manager: SessionManager, error: unknown): void {
+  console.error('Session refresh failed', error);
+  void manager.discard();
+}
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+function createDefaultManager(): SessionManager {
+  const manager: SessionManager = createWebSessionManager((error) => signOutAfterUnexpectedError(manager, error));
+  return manager;
+}
+
+export function AuthProvider({ children, manager: injected }: { children: ReactNode; manager?: SessionManager }) {
+  const [manager] = useState<SessionManager>(() => injected ?? createDefaultManager());
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<UserProfile | null>(null);
-  // Access token lives in memory only — never localStorage/sessionStorage.
-  const tokenRef = useRef<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Refresh tokens rotate and reuse of a revoked one revokes the whole family, so
-  // concurrent refreshes (StrictMode double effects, timer + mount) share one request.
-  const refreshInFlight = useRef<Promise<boolean> | null>(null);
-
-  const clear = useCallback(() => {
-    tokenRef.current = null;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = null;
-    setUser(null);
-    setStatus('anonymous');
-  }, []);
-
-  const silentRefresh = useCallback((): Promise<boolean> => {
-    if (!refreshInFlight.current) {
-      refreshInFlight.current = identityApi
-        .refresh()
-        .then((res) => {
-          apply(res);
-          return true;
-        })
-        .catch((err: unknown) => {
-          // 401 = no/expired/revoked cookie: the normal signed-out state.
-          if (!(err instanceof ApiError && err.status === 401)) console.error('Session refresh failed', err);
-          clear();
-          return false;
-        })
-        .finally(() => {
-          refreshInFlight.current = null;
-        });
-    }
-    return refreshInFlight.current;
-
-    function apply(res: AuthResponse) {
-      applyRef.current(res);
-    }
-  }, [clear]);
-
-  const apply = useCallback(
-    (res: AuthResponse) => {
-      tokenRef.current = res.accessToken;
-      setUser(res.user);
-      setStatus('authenticated');
-      if (timerRef.current) clearTimeout(timerRef.current);
-      const expiresIn = new Date(res.accessTokenExpiresAt).getTime() - Date.now();
-      timerRef.current = setTimeout(() => void silentRefresh(), Math.max(expiresIn - REFRESH_LEAD_MS, 5_000));
-    },
-    [silentRefresh],
-  );
-  const applyRef = useRef(apply);
-  useEffect(() => {
-    applyRef.current = apply;
-  }, [apply]);
 
   useEffect(() => {
-    void silentRefresh();
+    const unsubscribe = manager.subscribe((session) => {
+      setUser(session?.user ?? null);
+      setStatus(session ? 'authenticated' : 'anonymous');
+    });
+    manager.refresh().then(
+      (session) => {
+        if (!session) setStatus('anonymous');
+      },
+      (error: unknown) => signOutAfterUnexpectedError(manager, error),
+    );
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      unsubscribe();
+      manager.dispose();
     };
-  }, [silentRefresh]);
+  }, [manager]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
       user,
-      async login(body) {
-        const res = await identityApi.login(body);
-        apply(res);
-        return res.user;
-      },
-      async register(body) {
-        const res = await identityApi.register(body);
-        apply(res);
-        return res.user;
-      },
+      login: (body) => manager.login(body),
+      register: (body) => manager.register(body),
       async logout() {
-        const token = tokenRef.current;
-        try {
-          if (token) await identityApi.logout(token);
-        } catch (err) {
-          console.error('Logout request failed; clearing the local session anyway', err);
-        } finally {
-          clear();
-        }
+        await manager.logout().catch((error: unknown) => {
+          console.error('Logout request failed; the local session was cleared anyway', error);
+        });
       },
-      hasAnyRole: (roles) => !!user && user.roles.some((r) => roles.includes(r)),
-      getAccessToken: () => tokenRef.current,
+      hasAnyRole: (roles) => hasAnyRole(user, roles),
+      getAccessToken: () => manager.session?.accessToken ?? null,
     }),
-    [status, user, apply, clear],
+    [manager, status, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

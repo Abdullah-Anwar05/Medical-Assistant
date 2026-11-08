@@ -1,7 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using MediPath.Identity.Endpoints;
+using MediPath.Identity.Api.Endpoints;
+using MediPath.Identity.Application.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -220,7 +221,7 @@ public sealed class IdentityEndpointsTests(IdentityApiFactory factory) : IClassF
             (await c.PostAsJsonAsync($"{Base}/refresh", new { refreshToken = rotated.RefreshToken })).StatusCode);
 
         Assert.True(factory.WithDb(db => db.AuditEvents.Any(e =>
-            e.UserId == auth.User.Id && e.EventType == IdentityEndpoints.AuditTypes.RefreshReuseDetected)));
+            e.UserId == auth.User.Id && e.EventType == AuditEventTypes.RefreshReuseDetected)));
     }
 
     [Fact]
@@ -230,7 +231,7 @@ public sealed class IdentityEndpointsTests(IdentityApiFactory factory) : IClassF
         var cookie = CookieValue(RefreshCookie(reg)!);
 
         var req = new HttpRequestMessage(HttpMethod.Post, $"{Base}/refresh");
-        req.Headers.Add("Cookie", $"{IdentityEndpoints.RefreshCookie}={cookie}");
+        req.Headers.Add("Cookie", $"{ClientTokenDelivery.RefreshCookie}={cookie}");
         var r = await factory.Web().SendAsync(req);
 
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
@@ -309,13 +310,13 @@ public sealed class IdentityEndpointsTests(IdentityApiFactory factory) : IClassF
         var cookie = CookieValue(RefreshCookie(reg)!);
 
         var req = Bearer(HttpMethod.Post, $"{Base}/logout", auth.AccessToken);
-        req.Headers.Add("Cookie", $"{IdentityEndpoints.RefreshCookie}={cookie}");
+        req.Headers.Add("Cookie", $"{ClientTokenDelivery.RefreshCookie}={cookie}");
         var r = await factory.Web().SendAsync(req);
         Assert.Equal(HttpStatusCode.NoContent, r.StatusCode);
         Assert.Contains("expires=Thu, 01 Jan 1970", RefreshCookie(r)!);
 
         var again = new HttpRequestMessage(HttpMethod.Post, $"{Base}/refresh");
-        again.Headers.Add("Cookie", $"{IdentityEndpoints.RefreshCookie}={cookie}");
+        again.Headers.Add("Cookie", $"{ClientTokenDelivery.RefreshCookie}={cookie}");
         Assert.Equal(HttpStatusCode.Unauthorized, (await factory.Web().SendAsync(again)).StatusCode);
     }
 
@@ -354,9 +355,9 @@ public sealed class IdentityEndpointsTests(IdentityApiFactory factory) : IClassF
         Assert.Equal(
             new[]
             {
-                IdentityEndpoints.AuditTypes.Registered, IdentityEndpoints.AuditTypes.LoginFailed,
-                IdentityEndpoints.AuditTypes.LoginSucceeded, IdentityEndpoints.AuditTypes.RefreshSucceeded,
-                IdentityEndpoints.AuditTypes.Logout,
+                AuditEventTypes.Registered, AuditEventTypes.LoginFailed,
+                AuditEventTypes.LoginSucceeded, AuditEventTypes.RefreshSucceeded,
+                AuditEventTypes.Logout,
             }.Order(),
             types.Order());
         Assert.All(factory.WithDb(db => db.AuditEvents.Where(e => e.UserId == auth.User.Id).ToList()),

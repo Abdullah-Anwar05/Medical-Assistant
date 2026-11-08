@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import type { Role } from '../api/types';
+import type { Role } from '@medipath/client-core';
 import { useAuth } from './AuthContext';
 
 interface Props {

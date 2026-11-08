@@ -2,13 +2,14 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider, createDefaultClient } from '../src/auth/AuthContext';
+import { createDefaultSession } from '../src/api/session';
+import { AuthProvider } from '../src/auth/AuthContext';
 
 export default function RootLayout() {
-  const [client] = useState(createDefaultClient);
+  const [sessions] = useState(createDefaultSession);
   return (
     <SafeAreaProvider>
-      <AuthProvider client={client}>
+      <AuthProvider sessions={sessions}>
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false }} />
       </AuthProvider>

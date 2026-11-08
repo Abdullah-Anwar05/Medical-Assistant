@@ -1,7 +1,7 @@
 // MSW mock of the Identity API (contracts/identity-v1.md). SYNTHETIC test data only.
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import type { AuthResponse, Role, UserProfile } from '../api/types';
+import type { AuthResponse, Role, UserProfile } from '@medipath/client-core';
 
 export const API = 'http://gateway.test/api/v1/identity';
 

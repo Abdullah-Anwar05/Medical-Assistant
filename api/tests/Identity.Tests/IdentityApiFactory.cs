@@ -1,7 +1,9 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using MediPath.Identity.Data;
-using MediPath.Identity.Endpoints;
+using MediPath.Identity.Api.Endpoints;
+using MediPath.Identity.Application.Common;
+using MediPath.Identity.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -31,7 +33,7 @@ public sealed class IdentityApiFactory : WebApplicationFactory<Program>
 
     private static readonly Lazy<PostgreSqlContainer> Container = new(() =>
     {
-        var c = new PostgreSqlBuilder().WithImage("postgres:17").Build();
+        var c = new PostgreSqlBuilder("postgres:17").Build();
         c.StartAsync().GetAwaiter().GetResult();
         return c; // Testcontainers' resource reaper removes it when the test process exits.
     });
@@ -77,10 +79,8 @@ public sealed class IdentityApiFactory : WebApplicationFactory<Program>
             if (_connection is not null)
                 s.AddDbContext<IdentityDbContext>(o => o.UseSqlite(_connection));
             else
-                // Same configuration as Program.cs, so startup runs MigrateAsync against the `identity` schema.
-                s.AddDbContext<IdentityDbContext>(o => o
-                    .UseNpgsql(_pgConnectionString, x => x.MigrationsHistoryTable("__ef_migrations_history", IdentityDbContext.Schema))
-                    .UseSnakeCaseNamingConvention());
+                // Same options as the running service, so startup runs MigrateAsync against the `identity` schema.
+                s.AddDbContext<IdentityDbContext>(o => o.UseIdentityPostgres(_pgConnectionString!));
         });
     }
 
@@ -136,9 +136,9 @@ public static class TestData
 
     public static string? RefreshCookie(HttpResponseMessage r) =>
         r.Headers.TryGetValues("Set-Cookie", out var values)
-            ? values.FirstOrDefault(v => v.StartsWith(IdentityEndpoints.RefreshCookie + "=", StringComparison.Ordinal))
+            ? values.FirstOrDefault(v => v.StartsWith(ClientTokenDelivery.RefreshCookie + "=", StringComparison.Ordinal))
             : null;
 
     public static string CookieValue(string setCookie) =>
-        setCookie.Split(';')[0][(IdentityEndpoints.RefreshCookie.Length + 1)..];
+        setCookie.Split(';')[0][(ClientTokenDelivery.RefreshCookie.Length + 1)..];
 }

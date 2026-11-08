@@ -1,23 +1,6 @@
-/* Design tokens: deep navy / teal, white, pale neutrals.
-   Contrast (WCAG 2.2 AA, checked against white unless noted):
-   navy-900 #0b2545 ≈ 15:1 · teal-700 #0f6e6e ≈ 6:1 · ink-600 #4a5568 ≈ 7.5:1 · error #b42318 ≈ 6.4:1
-   white on navy-900 ≈ 15:1 · white on teal-700 ≈ 6:1 · focus ring #f2a900 on navy is the outer ring. */
+/* Colour tokens (--color-*) come from the shared palette in @medipath/client-core,
+   set on :root at start-up by src/theme/applyPalette.ts. */
 :root {
-  --color-navy-900: #0b2545;
-  --color-navy-700: #13315c;
-  --color-teal-700: #0f6e6e;
-  --color-teal-800: #0b5555;
-  --color-teal-50: #e6f4f3;
-  --color-white: #ffffff;
-  --color-neutral-50: #f7f8fa;
-  --color-neutral-200: #e2e6ec;
-  --color-ink-900: #1a202c;
-  --color-ink-600: #4a5568;
-  --color-border: #6b7686; /* ≥3:1 for input borders (1.4.11) */
-  --color-error: #b42318;
-  --color-error-bg: #fdecea;
-  --color-focus: #f2a900;
-
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --radius: 6px;
   --space-1: 0.25rem;

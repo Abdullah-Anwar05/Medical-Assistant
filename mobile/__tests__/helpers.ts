@@ -1,7 +1,6 @@
 // Synthetic test data only — not real patients.
-import { ApiClient } from '../src/api/client';
-import type { RefreshTokenStore } from '../src/api/tokenStore';
-import type { AuthResponse } from '../src/api/types';
+import type { AuthResponse, FetchLike, RefreshTokenStorage } from '@medipath/client-core';
+import { createSession } from '../src/api/session';
 
 export const BASE = 'http://gateway.test';
 
@@ -27,14 +26,14 @@ export function json(status: number, body?: unknown, contentType = 'application/
     ok: status >= 200 && status < 300,
     status,
     json: async () => {
-      if (body === undefined) throw new Error('no body');
+      if (body === undefined) throw new SyntaxError('Unexpected end of JSON input');
       return body;
     },
     headers: { get: () => contentType },
   } as unknown as Response;
 }
 
-export function memoryStore(initial: string | null = null): RefreshTokenStore & { value: string | null } {
+export function memoryStore(initial: string | null = null): RefreshTokenStorage & { value: string | null } {
   const store = {
     value: initial,
     get: async () => store.value,
@@ -48,14 +47,14 @@ export function memoryStore(initial: string | null = null): RefreshTokenStore & 
   return store;
 }
 
-export function makeClient(responses: Response[], store = memoryStore()) {
+export function makeSession(responses: Response[], store = memoryStore()) {
   const fetchImpl = jest.fn(async () => {
     const next = responses.shift();
     if (!next) throw new Error('Unexpected fetch');
     return next;
   });
-  const client = new ApiClient({ baseUrl: BASE, tokenStore: store, fetchImpl: fetchImpl as unknown as typeof fetch });
-  return { client, fetchImpl, store };
+  const sessions = createSession({ baseUrl: BASE, storage: store, fetchImpl: fetchImpl as unknown as FetchLike });
+  return { sessions, fetchImpl, store };
 }
 
 /** Parsed request of the n-th fetch call. */

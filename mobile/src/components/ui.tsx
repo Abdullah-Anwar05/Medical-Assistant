@@ -10,7 +10,8 @@ import {
   type TextInputProps,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, minTouch, spacing, type } from '../theme';
+import { palette } from '@medipath/client-core';
+import { minTouch, spacing, type } from '../theme';
 
 export function Screen({ children }: { children: ReactNode }) {
   return (
@@ -44,7 +45,7 @@ export function Field({ label, error, hint, ...input }: FieldProps) {
       <TextInput
         accessibilityLabel={label}
         accessibilityHint={hint}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={palette.ink600}
         style={[styles.input, error ? styles.inputError : null]}
         {...input}
       />
@@ -67,7 +68,7 @@ export function PrimaryButton({ label, onPress, busy }: { label: string; onPress
       onPress={onPress}
       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
     >
-      {busy ? <ActivityIndicator color={colors.white} /> : <Text style={styles.buttonText}>{label}</Text>}
+      {busy ? <ActivityIndicator color={palette.white} /> : <Text style={styles.buttonText}>{label}</Text>}
     </Pressable>
   );
 }
@@ -90,35 +91,35 @@ export function ErrorBanner({ message }: { message: string | null }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.canvas },
+  safe: { flex: 1, backgroundColor: palette.neutral50 },
   scroll: { padding: spacing.lg, gap: spacing.md },
   field: { gap: spacing.xs },
   input: {
     minHeight: minTouch,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: palette.border,
     borderRadius: 8,
-    backgroundColor: colors.white,
+    backgroundColor: palette.white,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: 17,
-    color: colors.navy,
+    color: palette.navy900,
   },
-  inputError: { borderColor: colors.error, borderWidth: 2 },
-  fieldError: { color: colors.error, fontSize: 14 },
+  inputError: { borderColor: palette.error, borderWidth: 2 },
+  fieldError: { color: palette.error, fontSize: 14 },
   button: {
     minHeight: minTouch,
     borderRadius: 8,
-    backgroundColor: colors.navy,
+    backgroundColor: palette.navy900,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },
-  buttonPressed: { backgroundColor: colors.tealDark },
-  buttonText: { color: colors.white, fontSize: 17, fontWeight: '600' },
+  buttonPressed: { backgroundColor: palette.teal800 },
+  buttonText: { color: palette.white, fontSize: 17, fontWeight: '600' },
   link: { minHeight: minTouch, justifyContent: 'center', alignItems: 'center' },
-  linkText: { color: colors.teal, fontSize: 17, fontWeight: '600', textDecorationLine: 'underline' },
-  banner: { backgroundColor: colors.errorBg, borderLeftWidth: 4, borderLeftColor: colors.error, padding: spacing.md },
-  bannerText: { color: colors.error, fontSize: 15 },
+  linkText: { color: palette.teal700, fontSize: 17, fontWeight: '600', textDecorationLine: 'underline' },
+  banner: { backgroundColor: palette.errorBg, borderLeftWidth: 4, borderLeftColor: palette.error, padding: spacing.md },
+  bannerText: { color: palette.error, fontSize: 15 },
 });

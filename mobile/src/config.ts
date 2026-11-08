@@ -9,7 +9,5 @@ export const API_BASE_URL: string =
   (Constants.expoConfig?.extra?.apiBaseUrl as string | undefined) ??
   'http://localhost:5080';
 
-export const IDENTITY_PATH = '/api/v1/identity';
-
 /** Terms version accepted at registration. Placeholder until the terms document exists. */
 export const TERMS_VERSION = process.env.EXPO_PUBLIC_TERMS_VERSION ?? '2026-11-draft'; // same placeholder as web

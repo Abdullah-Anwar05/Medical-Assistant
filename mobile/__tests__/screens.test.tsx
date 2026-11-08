@@ -1,10 +1,11 @@
+import { CORRECT_FIELDS_MESSAGE } from '@medipath/client-core';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { AuthProvider, useAuth } from '../src/auth/AuthContext';
 import { HomeScreen } from '../src/screens/HomeScreen';
 import { LoginScreen } from '../src/screens/LoginScreen';
-import { isValidPastDate, RegisterScreen } from '../src/screens/RegisterScreen';
-import { authResponse, call, json, makeClient, memoryStore } from './helpers';
+import { RegisterScreen } from '../src/screens/RegisterScreen';
+import { authResponse, call, json, makeSession, memoryStore } from './helpers';
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
@@ -21,9 +22,9 @@ function Status() {
 }
 
 async function renderWith(ui: ReactNode, responses: Response[], store = memoryStore()) {
-  const ctx = makeClient(responses, store);
+  const ctx = makeSession(responses, store);
   await render(
-    <AuthProvider client={ctx.client}>
+    <AuthProvider sessions={ctx.sessions}>
       <Status />
       {ui}
     </AuthProvider>,
@@ -74,7 +75,7 @@ describe('LoginScreen', () => {
     await fireEvent.changeText(screen.getByLabelText('Email address'), 'someone@example.test');
     await fireEvent.changeText(screen.getByLabelText('Password'), 'wrong password!!');
     await fireEvent.press(screen.getByRole('button', { name: 'Sign in' }));
-    expect(await screen.findByText(/wait 15 minutes/)).toBeTruthy();
+    expect(await screen.findByText(/try again in 15 minutes/)).toBeTruthy();
   });
 
   it('navigates to registration', async () => {
@@ -99,9 +100,9 @@ describe('RegisterScreen', () => {
     await fireEvent.changeText(screen.getByLabelText('Password'), 'short');
     await fireEvent.changeText(screen.getByLabelText('Date of birth'), '23/04/1980');
     await fireEvent.press(screen.getByRole('button', { name: 'Create account' }));
-    expect(await screen.findByText('Use at least 12 characters.')).toBeTruthy();
-    expect(screen.getByText('Enter your date of birth as YYYY-MM-DD.')).toBeTruthy();
-    expect(screen.getByText('You need to accept the terms to continue.')).toBeTruthy();
+    expect(await screen.findByText('Password must be at least 12 characters.')).toBeTruthy();
+    expect(screen.getByText('Enter your date of birth.')).toBeTruthy();
+    expect(screen.getByText('You must accept the terms to continue.')).toBeTruthy();
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
@@ -132,7 +133,7 @@ describe('RegisterScreen', () => {
     await fireEvent(screen.getByLabelText('I accept the MediPath terms of use and privacy notice'), 'valueChange', true);
     await fireEvent.press(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('This password has appeared in a data breach.')).toBeTruthy();
-    expect(screen.getByRole('alert')).toHaveTextContent('Please check the highlighted fields.');
+    expect(screen.getByRole('alert')).toHaveTextContent(CORRECT_FIELDS_MESSAGE);
   });
 });
 
@@ -148,13 +149,15 @@ describe('HomeScreen', () => {
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('signedOut'));
     expect(store.value).toBeNull();
   });
-});
 
-describe('isValidPastDate', () => {
-  it('rejects impossible and future dates', () => {
-    const today = new Date('2026-11-08T00:00:00Z');
-    expect(isValidPastDate('1980-02-30', today)).toBe(false);
-    expect(isValidPastDate('2030-01-01', today)).toBe(false);
-    expect(isValidPastDate('1980-02-29', today)).toBe(true);
+  it('still signs out locally when the server is unreachable', async () => {
+    const store = memoryStore('stored');
+    const { fetchImpl } = await renderWith(<HomeScreen />, [json(200, authResponse())], store);
+    fetchImpl.mockRejectedValueOnce(new TypeError('Network request failed'));
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
+    });
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('signedOut'));
+    expect(store.value).toBeNull();
   });
 });

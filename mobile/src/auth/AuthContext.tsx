@@ -1,16 +1,20 @@
+import {
+  ApiError,
+  NetworkError,
+  type LoginRequest,
+  type RegisterRequest,
+  type Session,
+  type SessionManager,
+  type UserProfile,
+} from '@medipath/client-core';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
-import { ApiClient, type Session } from '../api/client';
-import { secureRefreshTokenStore } from '../api/tokenStore';
-import type { LoginRequest, RegisterRequest, UserProfile } from '../api/types';
-import { API_BASE_URL } from '../config';
 
 export type AuthStatus = 'loading' | 'signedIn' | 'signedOut';
 
 interface AuthContextValue {
   status: AuthStatus;
   user: UserProfile | null;
-  client: ApiClient;
   login(body: LoginRequest): Promise<void>;
   register(body: RegisterRequest): Promise<void>;
   logout(): Promise<void>;
@@ -18,21 +22,24 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function createDefaultClient(): ApiClient {
-  return new ApiClient({ baseUrl: API_BASE_URL, tokenStore: secureRefreshTokenStore });
+/** Refresh on returning to the foreground when the access token expires within this window. */
+const FOREGROUND_REFRESH_SKEW_MS = 60_000;
+
+function isExpiringSoon(session: Session | null, now = Date.now()): boolean {
+  return session !== null && session.accessTokenExpiresAt - now <= FOREGROUND_REFRESH_SKEW_MS;
 }
 
-export function AuthProvider({ children, client }: { children: ReactNode; client: ApiClient }) {
-  const [session, setSession] = useState<Session | null>(client.currentSession);
+export function AuthProvider({ children, sessions }: { children: ReactNode; sessions: SessionManager }) {
+  const [session, setSession] = useState<Session | null>(sessions.session);
   const [status, setStatus] = useState<AuthStatus>('loading');
 
   useEffect(() => {
-    const unsubscribe = client.subscribe((s) => {
+    const unsubscribe = sessions.subscribe((s) => {
       setSession(s);
       setStatus(s ? 'signedIn' : 'signedOut');
     });
     // Restore a session from the Keychain on launch.
-    client
+    sessions
       .refresh()
       .then((s) => {
         setSession(s);
@@ -40,29 +47,36 @@ export function AuthProvider({ children, client }: { children: ReactNode; client
       })
       .catch(() => setStatus('signedOut'));
     return unsubscribe;
-  }, [client]);
+  }, [sessions]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active' && client.isExpiringSoon()) client.refresh().catch(() => undefined);
+      if (state === 'active' && isExpiringSoon(sessions.session)) sessions.refresh().catch(() => undefined);
     });
     return () => sub.remove();
-  }, [client]);
+  }, [sessions]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
       user: session?.user ?? null,
-      client,
       login: async (body) => {
-        await client.login(body);
+        await sessions.login(body);
       },
       register: async (body) => {
-        await client.register(body);
+        await sessions.register(body);
       },
-      logout: () => client.logout(),
+      // SessionManager always clears locally; an unreachable server or an already-rejected session
+      // still counts as signed out, anything else is surfaced.
+      logout: async () => {
+        try {
+          await sessions.logout();
+        } catch (e) {
+          if (!(e instanceof NetworkError || e instanceof ApiError)) throw e;
+        }
+      },
     }),
-    [client, session, status],
+    [sessions, session, status],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
